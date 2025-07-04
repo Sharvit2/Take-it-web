@@ -14,6 +14,7 @@ interface AuthContextType {
   loading: boolean
   signIn: (email: string, password: string) => Promise<AuthResponse>
   signUp: (email: string, password: string, fullName: string, userType: string) => Promise<AuthResponse>
+  signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -66,12 +67,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { data, error }
   }
 
+  const signInWithGoogle = async (): Promise<void> => {
+    const redirectTo = typeof window !== 'undefined' ? 
+      `${window.location.origin}/dashboard` : 
+      'https://take-it-web.netlify.app/dashboard'
+    
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo
+      }
+    })
+  }
+
   const signOut = async () => {
     await supabase.auth.signOut()
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   )
