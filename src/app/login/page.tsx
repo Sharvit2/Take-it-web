@@ -36,7 +36,7 @@ export default function LoginPage() {
       setError('')
       await signInWithGoogle()
       // No need to redirect here as the OAuth flow will handle redirection
-    } catch (err) {
+    } catch (_) {
       setError('שגיאה בהתחברות עם גוגל')
       setGoogleLoading(false)
     }
