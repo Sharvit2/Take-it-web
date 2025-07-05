@@ -39,7 +39,7 @@ export default function SignupPage() {
       setError('')
       await signInWithGoogle()
       // No need to redirect here as the OAuth flow will handle redirection
-    } catch (err) {
+    } catch (_) {
       setError('שגיאה בהרשמה עם גוגל')
       setLoading(false)
     }
