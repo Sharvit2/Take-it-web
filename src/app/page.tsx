@@ -36,7 +36,7 @@ export default function HomePage() {
               מצא את השירות המושלם עבורך או הציע את השירותים שלך
             </p>
             
-            <div className="space-x-4">
+            <div className="space-x-4 flex justify-center">
               <Link
                 href="/login"
                 className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
