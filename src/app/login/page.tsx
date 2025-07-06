@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -11,8 +11,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const { signIn, signInWithGoogle } = useAuth()
+  const { user, loading: authLoading, signIn, signInWithGoogle } = useAuth()
   const router = useRouter()
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push('/dashboard')
+    }
+  }, [user, authLoading, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,6 +45,14 @@ export default function LoginPage() {
       setError('שגיאה בהתחברות עם גוגל')
       setLoading(false)
     }
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">טוען...</div>
+      </div>
+    );
   }
 
   return (
