@@ -45,14 +45,14 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header className="bg-white shadow dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
             <button
               onClick={signOut}
-              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600"
             >
               התנתק
             </button>
@@ -61,16 +61,16 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-2xl mx-auto py-10 px-4">
-        <div className="bg-white shadow rounded-lg p-8">
-          <h2 className="text-2xl font-semibold mb-2">
+        <div className="bg-white shadow rounded-lg p-8 dark:bg-gray-800">
+          <h2 className="text-2xl font-semibold mb-2 dark:text-white">
             שלום{fullName ? `, ${fullName}` : ""}!
           </h2>
-          <p className="text-gray-700 mb-6">אימייל: {user.email}</p>
+          <p className="text-gray-700 mb-6 dark:text-gray-300">אימייל: {user.email}</p>
           <div className="space-x-4">
-            <Link href="/profile" className="text-blue-600 hover:underline">
+            <Link href="/profile" className="text-blue-600 hover:underline dark:text-blue-400">
               My Profile
             </Link>
-            <Link href="/settings" className="text-blue-600 hover:underline">
+            <Link href="/settings" className="text-blue-600 hover:underline dark:text-blue-400">
               Settings
             </Link>
           </div>
