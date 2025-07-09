@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [showPersonalDetailsForm, setShowPersonalDetailsForm] = useState(false) // State for personal details form visibility
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false) // State for left sidebar visibility
+  const [menuOpen, setMenuOpen] = useState(false) // State for unified menu visibility
 
   useEffect(() => {
     if (!loading && !user) {
@@ -95,31 +96,46 @@ export default function DashboardPage() {
         <header className="bg-white shadow dark:bg-gray-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-6">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-            <div className="flex items-center">
+            <div className="flex items-center relative">
               <button
                 onClick={signOut}
                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 mr-4"
               >
                 התנתק
               </button>
-              {/* Left Sidebar toggle button */}
+              {/* Unified Menu Button */}
               <button
-                onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-                className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 mr-2"
-              >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-              {/* Right Sidebar toggle button */}
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
+                onClick={() => setMenuOpen(!menuOpen)}
                 className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
+              {menuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg py-1 z-20">
+                  <button
+                    onClick={() => {
+                      setSidebarOpen(true)
+                      setLeftSidebarOpen(false)
+                      setMenuOpen(false)
+                    }}
+                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 w-full text-right"
+                  >
+                    פרטים אישיים
+                  </button>
+                  <button
+                    onClick={() => {
+                      setLeftSidebarOpen(true)
+                      setSidebarOpen(false)
+                      setMenuOpen(false)
+                    }}
+                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 w-full text-right"
+                  >
+                    עריכת פרטים אישיים
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
