@@ -1,8 +1,11 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation' // Import useRouter
 
 export default function LandingPage() {
+  const router = useRouter() // Initialize useRouter
+
   return (
     <div className="min-h-screen bg-gray-900 text-white font-sans" dir="rtl">
       {/* Header */}
@@ -92,9 +95,12 @@ export default function LandingPage() {
             <Link href="/signup" className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-full shadow-md transition duration-300">
               הירשם
             </Link>
-            <Link href="/login" className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-full shadow-md transition duration-300">
+            <button
+              onClick={() => router.push('/login')}
+              className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-full shadow-md transition duration-300"
+            >
               התחבר
-            </Link>
+            </button>
           </div>
         </section>
       </main>
