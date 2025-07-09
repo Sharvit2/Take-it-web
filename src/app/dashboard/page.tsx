@@ -256,12 +256,7 @@ export default function DashboardPage() {
               >
                 ערוך פרטים
               </button>
-              <Link href="/profile" className="block text-blue-600 hover:underline dark:text-blue-400 mb-2">
-                My Profile
-              </Link>
-              <Link href="/settings" className="block text-blue-600 hover:underline dark:text-blue-400 mb-2">
-                Settings
-              </Link>
+              
               <button
                 onClick={signOut}
                 className="w-full bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600"
