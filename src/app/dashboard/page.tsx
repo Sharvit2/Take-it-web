@@ -113,7 +113,7 @@ export default function DashboardPage() {
                 </svg>
               </button>
               {menuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg py-1 z-20">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg py-1 z-20">
                   <button
                     onClick={() => {
                       setSidebarOpen(true)
@@ -123,16 +123,6 @@ export default function DashboardPage() {
                     className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 w-full text-right"
                   >
                     פרטים אישיים
-                  </button>
-                  <button
-                    onClick={() => {
-                      setLeftSidebarOpen(true)
-                      setSidebarOpen(false)
-                      setMenuOpen(false)
-                    }}
-                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 w-full text-right"
-                  >
-                    עריכת פרטים אישיים
                   </button>
                 </div>
               )}
@@ -256,10 +246,21 @@ export default function DashboardPage() {
           <div className="text-gray-700 dark:text-gray-300">
             <p className="mb-2"><strong>שם מלא:</strong> {fullName || 'לא הוזן'}</p>
             <p className="mb-2"><strong>אימייל:</strong> {user.email}</p>
-            {/* Add more user details here as needed */}
             <div className="mt-6">
+              <button
+                onClick={() => {
+                  setLeftSidebarOpen(true)
+                  setSidebarOpen(false)
+                }}
+                className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 mb-2"
+              >
+                ערוך פרטים
+              </button>
               <Link href="/profile" className="block text-blue-600 hover:underline dark:text-blue-400 mb-2">
-                ערוך פרופיל
+                My Profile
+              </Link>
+              <Link href="/settings" className="block text-blue-600 hover:underline dark:text-blue-400 mb-2">
+                Settings
               </Link>
               <button
                 onClick={signOut}
