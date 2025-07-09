@@ -20,6 +20,7 @@ export default function DashboardPage() {
   const [showPersonalDetailsForm, setShowPersonalDetailsForm] = useState(false) // State for personal details form visibility
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false) // State for left sidebar visibility
   const [menuOpen, setMenuOpen] = useState(false) // State for unified menu visibility
+  const [userMode, setUserMode] = useState<'client' | 'therapist'>('client') // State for user mode
 
   useEffect(() => {
     if (!loading && !user) {
@@ -95,8 +96,25 @@ export default function DashboardPage() {
       <div className="flex-1 flex flex-col">
         <header className="bg-white shadow dark:bg-gray-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+            {/* <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1> */}
             <div className="flex items-center relative">
+              {/* Mode Toggle */}
+              <div className="flex flex-col items-center ml-4">
+                <span className="text-sm text-gray-700 dark:text-gray-300 mb-1">
+                  {userMode === 'client' ? 'מצב פונה' : 'מצב מטפל'}
+                </span>
+                <button
+                  onClick={() => setUserMode(prevMode => prevMode === 'client' ? 'therapist' : 'client')}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+                    ${userMode === 'client' ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'}`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform
+                      ${userMode === 'client' ? 'translate-x-6' : 'translate-x-1'}`}
+                  />
+                </button>
+              </div>
+
               <button
                 onClick={signOut}
                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 mr-4"
