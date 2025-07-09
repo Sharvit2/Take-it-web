@@ -95,12 +95,6 @@ export default function LandingPage() {
             <Link href="/signup" className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-full shadow-md transition duration-300">
               הירשם
             </Link>
-            <button
-              onClick={() => router.push('/login')}
-              className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-full shadow-md transition duration-300"
-            >
-              התחבר
-            </button>
           </div>
         </section>
       </main>
