@@ -17,6 +17,7 @@ export default function DashboardPage() {
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string>("")
   const [saveSuccess, setSaveSuccess] = useState(false)
+  const [showPersonalDetailsForm, setShowPersonalDetailsForm] = useState(false) // State for personal details form visibility
 
   useEffect(() => {
     if (!loading && !user) {
@@ -73,6 +74,7 @@ export default function DashboardPage() {
     } else {
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 3000) // Hide success message after 3 seconds
+      setShowPersonalDetailsForm(false) // Close the form after successful save
     }
     setSaving(false)
   }
@@ -121,60 +123,80 @@ export default function DashboardPage() {
               <p className="text-gray-700 mb-6 dark:text-gray-300">אימייל: {user.email}</p>
               
               <div className="mt-8">
-                <h3 className="text-xl font-semibold mb-4 dark:text-white">פרטים אישיים</h3>
-                {saveError && (
-                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 dark:bg-red-900 dark:text-red-300 dark:border-red-700">
-                    {saveError}
+                <button
+                  onClick={() => setShowPersonalDetailsForm(!showPersonalDetailsForm)}
+                  className="text-blue-600 hover:underline dark:text-blue-400 mb-4 focus:outline-none"
+                >
+                  <h3 className="text-xl font-semibold dark:text-white inline-block">פרטים אישיים</h3>
+                  <span className="ml-2 text-sm">{showPersonalDetailsForm ? '(סגור)' : '(ערוך)'}</span>
+                </button>
+                {showPersonalDetailsForm && (
+                  <div>
+                    {saveError && (
+                      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 dark:bg-red-900 dark:text-red-300 dark:border-red-700">
+                        {saveError}
+                      </div>
+                    )}
+                    {saveSuccess && (
+                      <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 dark:bg-green-900 dark:text-green-300 dark:border-green-700">
+                        פרטים נשמרו בהצלחה!
+                      </div>
+                    )}
+                    <div className="space-y-4">
+                      <div>
+                        <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">שם מלא</label>
+                        <input
+                          type="text"
+                          id="fullName"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">טלפון</label>
+                        <input
+                          type="text"
+                          id="phone"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300">עיר</label>
+                        <input
+                          type="text"
+                          id="city"
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="gender" className="block text-sm font-medium text-gray-700 dark:text-gray-300">מגדר</label>
+                        <select
+                          id="gender"
+                          value={gender}
+                          onChange={(e) => setGender(e.target.value)}
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        >
+                          <option value="">בחר</option>
+                          <option value="Male">זכר</option>
+                          <option value="Female">נקבה</option>
+                          <option value="Other">אחר</option>
+                        </select>
+                      </div>
+                      <button
+                        onClick={handleSaveProfile}
+                        disabled={saving}
+                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                      >
+                        {saving ? 'שומר...' : 'שמור שינויים'}
+                      </button>
+                    </div>
                   </div>
                 )}
-                {saveSuccess && (
-                  <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 dark:bg-green-900 dark:text-green-300 dark:border-green-700">
-                    פרטים נשמרו בהצלחה!
-                  </div>
-                )}
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">טלפון</label>
-                    <input
-                      type="text"
-                      id="phone"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300">עיר</label>
-                    <input
-                      type="text"
-                      id="city"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="gender" className="block text-sm font-medium text-gray-700 dark:text-gray-300">מגדר</label>
-                    <select
-                      id="gender"
-                      value={gender}
-                      onChange={(e) => setGender(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    >
-                      <option value="">בחר</option>
-                      <option value="Male">זכר</option>
-                      <option value="Female">נקבה</option>
-                      <option value="Other">אחר</option>
-                    </select>
-                  </div>
-                  <button
-                    onClick={handleSaveProfile}
-                    disabled={saving}
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                  >
-                    {saving ? 'שומר...' : 'שמור שינויים'}
-                  </button>
-                </div>
               </div>
               
               <div className="space-x-4 mt-8">
