@@ -11,6 +11,12 @@ export default function DashboardPage() {
   const router = useRouter()
   const [fullName, setFullName] = useState<string>("")
   const [sidebarOpen, setSidebarOpen] = useState(false) // State for sidebar visibility
+  const [phone, setPhone] = useState<string>("")
+  const [city, setCity] = useState<string>("")
+  const [gender, setGender] = useState<string>("")
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string>("")
+  const [saveSuccess, setSaveSuccess] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -24,18 +30,52 @@ export default function DashboardPage() {
       if (user) {
         const { data, error } = await supabase
           .from('profiles')
-          .select('full_name')
+          .select('full_name, phone, city, gender')
           .eq('id', user.id)
           .single()
-        if (data && data.full_name) {
-          setFullName(data.full_name)
-        } else {
-          setFullName('')
+        if (data) {
+          setFullName(data.full_name || '')
+          setPhone(data.phone || '')
+          setCity(data.city || '')
+          setGender(data.gender || '')
+        } else if (error) {
+          console.error('Error fetching profile:', error)
         }
       }
     }
     fetchProfile()
   }, [user])
+
+  const handleSaveProfile = async () => {
+    setSaving(true)
+    setSaveError('')
+    setSaveSuccess(false)
+
+    if (!user) {
+      setSaveError('User not logged in.')
+      setSaving(false)
+      return
+    }
+
+    const updates = {
+      id: user.id,
+      full_name: fullName,
+      phone,
+      city,
+      gender,
+      updated_at: new Date().toISOString(),
+    }
+
+    const { error } = await supabase.from('profiles').upsert(updates)
+
+    if (error) {
+      setSaveError('שגיאה בשמירת פרטים: ' + error.message)
+    } else {
+      setSaveSuccess(true)
+      setTimeout(() => setSaveSuccess(false), 3000) // Hide success message after 3 seconds
+    }
+    setSaving(false)
+  }
 
   if (loading || !user) {
     return (
@@ -79,7 +119,65 @@ export default function DashboardPage() {
                 שלום{fullName ? `, ${fullName}` : ""}!
               </h2>
               <p className="text-gray-700 mb-6 dark:text-gray-300">אימייל: {user.email}</p>
-              <div className="space-x-4">
+              
+              <div className="mt-8">
+                <h3 className="text-xl font-semibold mb-4 dark:text-white">פרטים אישיים</h3>
+                {saveError && (
+                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 dark:bg-red-900 dark:text-red-300 dark:border-red-700">
+                    {saveError}
+                  </div>
+                )}
+                {saveSuccess && (
+                  <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 dark:bg-green-900 dark:text-green-300 dark:border-green-700">
+                    פרטים נשמרו בהצלחה!
+                  </div>
+                )}
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">טלפון</label>
+                    <input
+                      type="text"
+                      id="phone"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300">עיר</label>
+                    <input
+                      type="text"
+                      id="city"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="gender" className="block text-sm font-medium text-gray-700 dark:text-gray-300">מגדר</label>
+                    <select
+                      id="gender"
+                      value={gender}
+                      onChange={(e) => setGender(e.target.value)}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    >
+                      <option value="">בחר</option>
+                      <option value="Male">זכר</option>
+                      <option value="Female">נקבה</option>
+                      <option value="Other">אחר</option>
+                    </select>
+                  </div>
+                  <button
+                    onClick={handleSaveProfile}
+                    disabled={saving}
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    {saving ? 'שומר...' : 'שמור שינויים'}
+                  </button>
+                </div>
+              </div>
+              
+              <div className="space-x-4 mt-8">
                 <Link href="/profile" className="text-blue-600 hover:underline dark:text-blue-400">
                   My Profile
                 </Link>
