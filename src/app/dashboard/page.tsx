@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 export default function DashboardPage() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -12,13 +13,33 @@ export default function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortOrder, setSortOrder] = useState('');
-  const [showPersonalDetailsMenu, setShowPersonalDetailsMenu] = useState(false); // New state for personal details menu
+  const [showMenu, setShowMenu] = useState(false); // State for the main dropdown menu
+  const [fullName, setFullName] = useState<string>(''); // State for user's full name
 
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login');
     }
   }, [user, authLoading, router]);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (user) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+
+        if (data && data.full_name) {
+          setFullName(data.full_name);
+        } else {
+          setFullName('');
+        }
+      }
+    };
+    fetchProfile();
+  }, [user]);
 
   const handleLogout = async () => {
     await signOut();
@@ -37,38 +58,36 @@ export default function DashboardPage() {
     <div className="flex flex-col min-h-screen">
       {/* Top Navigation Bar */}
       <nav className="bg-white shadow-md p-4 flex justify-between items-center z-10 sticky top-0 w-full">
+          {/* Right side: TAKE IT logo */}
           <div className="text-xl sm:text-2xl font-bold text-teal-600">TAKE IT</div>
-          <div className="flex items-center space-x-2 sm:space-x-4 space-x-reverse">
-              {/* New Personal Details Menu */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowPersonalDetailsMenu(!showPersonalDetailsMenu)}
-                  className="flex items-center text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-md py-1.5 px-3 transition duration-300"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
-                  פרטים אישיים
-                </button>
-                {showPersonalDetailsMenu && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20">
-                    <Link href="#"
-                      onClick={() => setShowPersonalDetailsMenu(false)} // Close menu on click
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition duration-200"
-                    >
-                      פרופיל שלי
-                    </Link>
-                    {/* Add more menu items here if needed */}
-                  </div>
-                )}
-              </div>
-              <span className="text-base sm:text-lg font-semibold text-gray-700 truncate max-w-[120px] sm:max-w-none">שלום, {user?.email || 'אורח'}!</span>
+
+          {/* Center: User Name */}
+          <div className="flex-grow text-center">
+              <span className="text-base sm:text-lg font-semibold text-gray-700 truncate max-w-[150px] sm:max-w-none inline-block">שלום, {fullName || 'אורח'}!</span>
+          </div>
+
+          {/* Left side: Menu Button */}
+          <div className="relative">
               <button
-                onClick={handleLogout}
-                className="bg-blue-500 hover:bg-blue-600 text-white text-sm sm:text-base font-bold py-1.5 px-3 sm:py-2 sm:px-4 rounded-full transition duration-300"
+                onClick={() => setShowMenu(!showMenu)}
+                className="bg-blue-500 hover:bg-blue-600 text-white text-sm sm:text-base font-bold py-1.5 px-3 sm:py-2 sm:px-4 rounded-full transition duration-300 flex items-center"
               >
-                  התנתק
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                  <span className="mr-2">תפריט</span>
               </button>
+
+              {/* Dropdown Menu */}
+              <div className={`dropdown-menu ${showMenu ? 'show' : ''}`}>
+                  <Link href="#" onClick={() => setShowMenu(false)}>הגדרות</Link>
+                  <Link href="#" onClick={() => setShowMenu(false)}>פרטים אישיים</Link>
+                  <Link href="#" onClick={() => setShowMenu(false)}>הקריאות שפתחתי</Link>
+                  <Link href="#" onClick={() => setShowMenu(false)}>הקריאות שטיפלתי</Link>
+                  <Link href="#" onClick={() => setShowMenu(false)}>צ'אטים</Link>
+                  <Link href="#" onClick={() => setShowMenu(false)}>שאלות ותשובות</Link>
+                  <Link href="#" onClick={handleLogout}>התנתק</Link>
+              </div>
           </div>
       </nav>
 

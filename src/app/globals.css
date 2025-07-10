@@ -46,3 +46,34 @@ body {
         margin-top: 1.5rem; /* Equivalent to gap-6 */
     }
 }
+
+/* Styles for the dropdown menu */
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 20; /* Above other content */
+    border-radius: 0.75rem; /* rounded-xl */
+    top: 100%; /* Position below the button */
+    left: 0; /* Align to the left of the button for RTL */
+    margin-top: 0.5rem; /* Space below button */
+    overflow: hidden; /* For rounded corners on children */
+}
+
+.dropdown-menu a {
+    color: #4b5563; /* gray-700 */
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: right; /* For RTL */
+}
+
+.dropdown-menu a:hover {
+    background-color: #f3f4f6; /* gray-100 */
+}
+
+.dropdown-menu.show {
+    display: block;
+}
