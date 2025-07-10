@@ -12,6 +12,7 @@ export default function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortOrder, setSortOrder] = useState('');
+  const [showPersonalDetailsMenu, setShowPersonalDetailsMenu] = useState(false); // New state for personal details menu
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -38,6 +39,29 @@ export default function DashboardPage() {
       <nav className="bg-white shadow-md p-4 flex justify-between items-center z-10 sticky top-0 w-full">
           <div className="text-xl sm:text-2xl font-bold text-teal-600">TAKE IT</div>
           <div className="flex items-center space-x-2 sm:space-x-4 space-x-reverse">
+              {/* New Personal Details Menu */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowPersonalDetailsMenu(!showPersonalDetailsMenu)}
+                  className="flex items-center text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-md py-1.5 px-3 transition duration-300"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
+                  פרטים אישיים
+                </button>
+                {showPersonalDetailsMenu && (
+                  <div className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20">
+                    <Link href="#"
+                      onClick={() => setShowPersonalDetailsMenu(false)} // Close menu on click
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition duration-200"
+                    >
+                      פרופיל שלי
+                    </Link>
+                    {/* Add more menu items here if needed */}
+                  </div>
+                )}
+              </div>
               <span className="text-base sm:text-lg font-semibold text-gray-700 truncate max-w-[120px] sm:max-w-none">שלום, {user?.email || 'אורח'}!</span>
               <button
                 onClick={handleLogout}
