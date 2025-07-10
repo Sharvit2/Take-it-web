@@ -8,11 +8,15 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white font-sans" dir="rtl">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-teal-600 to-blue-600 p-6 text-center rounded-b-3xl shadow-lg relative">
-        <Link href="/dashboard" className="absolute top-4 right-4 bg-white text-teal-600 font-bold py-2 px-4 rounded-full shadow-md hover:bg-gray-100 transition duration-300">
+      {/* New Top Bar for Login Button */}
+      <nav className="w-full p-4 flex justify-end">
+        <Link href="/dashboard" className="bg-white text-teal-600 font-bold py-2 px-4 rounded-full shadow-md hover:bg-gray-100 transition duration-300">
           התחבר
         </Link>
+      </nav>
+
+      {/* Header */}
+      <header className="bg-gradient-to-r from-teal-600 to-blue-600 p-6 text-center rounded-b-3xl shadow-lg">
         <h1 className="text-5xl font-extrabold mb-4">TAKE IT – פשוט קח את זה.</h1>
         <p className="text-xl font-semibold text-white">
           בין אם אתה <strong className="text-yellow-200">צריך עזרה</strong> ובין אם אתה <strong className="text-yellow-200">יכול לעזור</strong>, אנחנו פה כדי לחבר ביניכם ברגע.
