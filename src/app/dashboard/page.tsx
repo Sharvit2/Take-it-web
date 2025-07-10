@@ -174,19 +174,8 @@ export default function DashboardPage() {
                 </span>
               </div>
               
-              {userRole === 'client' ? (
-                <div className="mt-8 text-center">
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold py-3 px-6 rounded-full shadow-lg transition duration-300 w-full">
-                    פתח קריאת שירות חדשה
-                  </button>
-                </div>
-              ) : (
-                <div className="mt-8 text-center">
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold py-3 px-6 rounded-full shadow-lg transition duration-300 w-full">
-                    צפה בקריאות פתוחות
-                  </button>
-                </div>
-              )}
+              {/* Removed conditional buttons for 'פתח קריאת שירות חדשה' and 'צפה בקריאות פתוחות' */}
+
           </aside>
 
           {/* Main Content (Calls/Requests) */}
