@@ -131,7 +131,6 @@ export default function DashboardPage() {
                   <Link href="#" onClick={() => setShowMenu(false)}>הקריאות שטיפלתי</Link>
                   <Link href="#" onClick={() => setShowMenu(false)}>צ'אטים</Link>
                   <Link href="#" onClick={() => setShowMenu(false)}>שאלות ותשובות</Link>
-                  <Link href="#" onClick={handleLogout}>התנתק</Link>
               </div>
           </div>
       </nav>
