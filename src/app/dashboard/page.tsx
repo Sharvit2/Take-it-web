@@ -210,114 +210,130 @@ export default function DashboardPage() {
 
           {/* Main Content (Calls/Requests) */}
           <main className="flex-1 bg-white rounded-2xl shadow-lg p-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6 border-b-2 border-teal-400 pb-2">
-                  קריאות פתוחות באזורך
-              </h2>
+              {userRole === 'client' ? (
+                <div className="text-center py-12">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">
+                    רוצה לפתוח פנייה חדשה?
+                  </h2>
+                  <p className="text-lg text-gray-600 mb-8">
+                    שתף מה אתה צריך, קבע מחיר, ותן לנותני השירות לקחת את זה!
+                  </p>
+                  <button className="bg-teal-600 hover:bg-teal-700 text-white text-xl font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105">
+                    פתח פנייה
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6 border-b-2 border-teal-400 pb-2">
+                      קריאות פתוחות באזורך
+                  </h2>
 
-              {/* Filter/Sort Options */}
-              <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                  <input
-                    type="text"
-                    placeholder="חפש קריאה..."
-                    className="p-2 sm:p-3 border border-gray-300 rounded-xl w-full sm:w-auto flex-grow text-sm sm:text-base focus:ring-blue-500 focus:border-blue-500"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                  <select
-                    className="p-2 sm:p-3 border border-gray-300 rounded-xl bg-white w-full sm:w-auto text-sm sm:text-base focus:ring-blue-500 focus:border-blue-500"
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                  >
-                      <option value="">סנן לפי קטגוריה</option>
-                      <option value="plumbing">אינסטלציה</option>
-                      <option value="cleaning">ניקיון</option>
-                      {/* More categories */}
-                  </select>
-                  <select
-                    className="p-2 sm:p-3 border border-gray-300 rounded-xl bg-white w-full sm:w-auto text-sm sm:text-base focus:ring-blue-500 focus:border-blue-500"
-                    value={sortOrder}
-                    onChange={(e) => setSortOrder(e.target.value)}
-                  >
-                      <option value="">מיין לפי</option>
-                      <option value="newest">החדש ביותר</option>
-                      <option value="price-high">מחיר (גבוה לנמוך)</option>
-                      <option value="price-low">מחיר (נמוך לגבוה)</option>
-                  </select>
-              </div>
-
-              {/* Calls/Requests List */}
-              <div className="space-y-6">
-                  {/* Example Call Card 1 */}
-                  <div className="bg-gray-50 p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition duration-200">
-                      <div className="flex justify-between items-start mb-3 flex-wrap">
-                          <div className="flex-grow">
-                              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">תיקון נזילה בכיור</h3>
-                              <p className="text-gray-600 text-xs sm:text-sm">פורסם לפני 10 דקות</p>
-                          </div>
-                          <span className="text-xl sm:text-2xl font-bold text-green-600 mt-2 sm:mt-0 mr-auto sm:mr-0">₪150</span>
-                      </div>
-                      <p className="text-gray-700 text-sm sm:text-base mb-4">
-                          דרוש אינסטלטור לתיקון נזילה קלה בכיור המטבח. עדיפות לזמינות מיידית.
-                      </p>
-                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs sm:text-sm text-gray-500 gap-2 sm:gap-0">
-                          <span className="bg-teal-100 text-teal-800 px-2.5 py-0.5 rounded-full">אינסטלציה</span>
-                          <span>אזור: תל אביב - מרכז</span>
-                      </div>
-                      <div className="mt-4 text-left">
-                          <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 w-full sm:w-auto">
-                              קח את המשימה
-                          </button>
-                      </div>
+                  {/* Filter/Sort Options */}
+                  <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                      <input
+                        type="text"
+                        placeholder="חפש קריאה..."
+                        className="p-2 sm:p-3 border border-gray-300 rounded-xl w-full sm:w-auto flex-grow text-sm sm:text-base focus:ring-blue-500 focus:border-blue-500"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                      <select
+                        className="p-2 sm:p-3 border border-gray-300 rounded-xl bg-white w-full sm:w-auto text-sm sm:text-base focus:ring-blue-500 focus:border-blue-500"
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                      >
+                          <option value="">סנן לפי קטגוריה</option>
+                          <option value="plumbing">אינסטלציה</option>
+                          <option value="cleaning">ניקיון</option>
+                          {/* More categories */}
+                      </select>
+                      <select
+                        className="p-2 sm:p-3 border border-gray-300 rounded-xl bg-white w-full sm:w-auto text-sm sm:text-base focus:ring-blue-500 focus:border-blue-500"
+                        value={sortOrder}
+                        onChange={(e) => setSortOrder(e.target.value)}
+                      >
+                          <option value="">מיין לפי</option>
+                          <option value="newest">החדש ביותר</option>
+                          <option value="price-high">מחיר (גבוה לנמוך)</option>
+                          <option value="price-low">מחיר (נמוך לגבוה)</option>
+                      </select>
                   </div>
 
-                  {/* Example Call Card 2 */}
-                  <div className="bg-gray-50 p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition duration-200">
-                      <div className="flex justify-between items-start mb-3 flex-wrap">
-                          <div className="flex-grow">
-                              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">ניקיון דירה קטנה לפני מעבר</h3>
-                              <p className="text-gray-600 text-xs sm:text-sm">פורסם לפני שעה</p>
+                  {/* Calls/Requests List */}
+                  <div className="space-y-6">
+                      {/* Example Call Card 1 */}
+                      <div className="bg-gray-50 p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition duration-200">
+                          <div className="flex justify-between items-start mb-3 flex-wrap">
+                              <div className="flex-grow">
+                                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900">תיקון נזילה בכיור</h3>
+                                  <p className="text-gray-600 text-xs sm:text-sm">פורסם לפני 10 דקות</p>
+                              </div>
+                              <span className="text-xl sm:text-2xl font-bold text-green-600 mt-2 sm:mt-0 mr-auto sm:mr-0">₪150</span>
                           </div>
-                          <span className="text-xl sm:text-2xl font-bold text-green-600 mt-2 sm:mt-0 mr-auto sm:mr-0">₪300</span>
-                      </div>
-                      <p className="text-gray-700 text-sm sm:text-base mb-4">
-                          ניקיון יסודי לדירת 2 חדרים (50 מ"ר) כולל חלונות ומטבח. נדרש ליום ראשון הקרוב.
-                      </p>
-                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs sm:text-sm text-gray-500 gap-2 sm:gap-0">
-                          <span className="bg-purple-100 text-purple-800 px-2.5 py-0.5 rounded-full">ניקיון</span>
-                          <span>אזור: ירושלים - רחביה</span>
-                      </div>
-                      <div className="mt-4 text-left">
-                          <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 w-full sm:w-auto">
-                              קח את המשימה
-                          </button>
-                      </div>
-                  </div>
-
-                  {/* Example Call Card 3 */}
-                  <div className="bg-gray-50 p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition duration-200">
-                      <div className="flex justify-between items-start mb-3 flex-wrap">
-                          <div className="flex-grow">
-                              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">בייביסיטר לילד בן 4</h3>
-                              <p className="text-gray-600 text-xs sm:text-sm">פורסם לפני 3 שעות</p>
+                          <p className="text-gray-700 text-sm sm:text-base mb-4">
+                              דרוש אינסטלטור לתיקון נזילה קלה בכיור המטבח. עדיפות לזמינות מיידית.
+                          </p>
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs sm:text-sm text-gray-500 gap-2 sm:gap-0">
+                              <span className="bg-teal-100 text-teal-800 px-2.5 py-0.5 rounded-full">אינסטלציה</span>
+                              <span>אזור: תל אביב - מרכז</span>
                           </div>
-                          <span className="text-xl sm:text-2xl font-bold text-green-600 mt-2 sm:mt-0 mr-auto sm:mr-0">₪80</span>
+                          <div className="mt-4 text-left">
+                              <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 w-full sm:w-auto">
+                                  קח את המשימה
+                              </button>
+                          </div>
                       </div>
-                      <p className="text-gray-700 text-sm sm:text-base mb-4">
-                          מחפשת בייביסיטר אחראית ליום חמישי בערב (18:00-21:00).
-                      </p>
-                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs sm:text-sm text-gray-500 gap-2 sm:gap-0">
-                          <span className="bg-pink-100 text-pink-800 px-2.5 py-0.5 rounded-full">בייביסיטר</span>
-                          <span>אזור: חיפה - כרמל</span>
-                      </div>
-                      <div className="mt-4 text-left">
-                          <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 w-full sm:w-auto">
-                              קח את המשימה
-                          </button>
-                      </div>
-                  </div>
 
-                  {/* Add more call cards as needed */}
-              </div>
+                      {/* Example Call Card 2 */}
+                      <div className="bg-gray-50 p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition duration-200">
+                          <div className="flex justify-between items-start mb-3 flex-wrap">
+                              <div className="flex-grow">
+                                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900">ניקיון דירה קטנה לפני מעבר</h3>
+                                  <p className="text-gray-600 text-xs sm:text-sm">פורסם לפני שעה</p>
+                              </div>
+                              <span className="text-xl sm:text-2xl font-bold text-green-600 mt-2 sm:mt-0 mr-auto sm:mr-0">₪300</span>
+                          </div>
+                          <p className="text-gray-700 text-sm sm:text-base mb-4">
+                              ניקיון יסודי לדירת 2 חדרים (50 מ"ר) כולל חלונות ומטבח. נדרש ליום ראשון הקרוב.
+                          </p>
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs sm:text-sm text-gray-500 gap-2 sm:gap-0">
+                              <span className="bg-purple-100 text-purple-800 px-2.5 py-0.5 rounded-full">ניקיון</span>
+                              <span>אזור: ירושלים - רחביה</span>
+                          </div>
+                          <div className="mt-4 text-left">
+                              <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 w-full sm:w-auto">
+                                  קח את המשימה
+                              </button>
+                          </div>
+                      </div>
+
+                      {/* Example Call Card 3 */}
+                      <div className="bg-gray-50 p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition duration-200">
+                          <div className="flex justify-between items-start mb-3 flex-wrap">
+                              <div className="flex-grow">
+                                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900">בייביסיטר לילד בן 4</h3>
+                                  <p className="text-gray-600 text-xs sm:text-sm">פורסם לפני 3 שעות</p>
+                              </div>
+                              <span className="text-xl sm:text-2xl font-bold text-green-600 mt-2 sm:mt-0 mr-auto sm:mr-0">₪80</span>
+                          </div>
+                          <p className="text-gray-700 text-sm sm:text-base mb-4">
+                              מחפשת בייביסיטר אחראית ליום חמישי בערב (18:00-21:00).
+                          </p>
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs sm:text-sm text-gray-500 gap-2 sm:gap-0">
+                              <span className="bg-pink-100 text-pink-800 px-2.5 py-0.5 rounded-full">בייביסיטר</span>
+                              <span>אזור: חיפה - כרמל</span>
+                          </div>
+                          <div className="mt-4 text-left">
+                              <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 w-full sm:w-auto">
+                                  קח את המשימה
+                              </button>
+                          </div>
+                      </div>
+
+                      {/* Add more call cards as needed */}
+                  </div>
+                </>
+              )}
           </main>
       </div>
 
