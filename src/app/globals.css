@@ -17,3 +17,32 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+body {
+    font-family: 'Inter', sans-serif;
+    direction: rtl; /* Set text direction to Right-to-Left for Hebrew */
+    text-align: right; /* Align text to the right for Hebrew */
+    background-color: #f3f4f6; /* Light gray background */
+}
+/* Custom scrollbar for a cleaner look */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #e0e0e0;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background: #a0a0a0;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #888;
+}
+
+/* Specific mobile adjustments for better readability and spacing */
+@media (max-width: 767px) {
+    .mobile-stack-gap > * + * {
+        margin-top: 1.5rem; /* Equivalent to gap-6 */
+    }
+}
