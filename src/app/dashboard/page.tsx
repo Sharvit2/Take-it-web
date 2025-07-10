@@ -165,11 +165,15 @@ export default function DashboardPage() {
                 <button
                   onClick={handleToggleRole}
                   disabled={updatingRole}
-                  className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full shadow-md transition duration-300 disabled:opacity-50"
+                  className={`font-bold py-2 px-4 rounded-full shadow-md transition duration-300 ${updatingRole ? 'opacity-50 cursor-not-allowed' : ''}
+                    ${userRole === 'client'
+                      ? 'bg-purple-600 hover:bg-purple-700 text-white transform hover:scale-105'
+                      : 'bg-green-600 hover:bg-green-700 text-white transform hover:scale-105'
+                    }`}
                 >
                   {updatingRole ? 'מעדכן...' : (userRole === 'client' ? 'הפוך לנותן שירות' : 'הפוך ללקוח')}
                 </button>
-                <span className="text-base sm:text-lg font-semibold text-gray-700">
+                <span className={`text-lg font-semibold px-3 py-1 rounded-full ${userRole === 'client' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'}`}>
                   סטטוס: {userRole === 'client' ? 'לקוח' : 'נותן שירות'}
                 </span>
               </div>
