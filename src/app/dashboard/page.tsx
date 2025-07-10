@@ -14,7 +14,12 @@ export default function DashboardPage() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortOrder, setSortOrder] = useState('');
   const [showMenu, setShowMenu] = useState(false); // State for the main dropdown menu
+  const [showPersonalDetailsModal, setShowPersonalDetailsModal] = useState(false); // State for personal details modal
   const [fullName, setFullName] = useState<string>(''); // State for user's full name
+  const [gender, setGender] = useState<string>('');
+  const [city, setCity] = useState<string>('');
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -25,21 +30,54 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchProfile = async () => {
       if (user) {
+        setLoadingProfile(true);
+        setProfileError(null);
         const { data, error } = await supabase
           .from('profiles')
-          .select('full_name')
+          .select('full_name, gender, city')
           .eq('id', user.id)
           .single();
 
-        if (data && data.full_name) {
-          setFullName(data.full_name);
-        } else {
-          setFullName('');
+        if (error) {
+          console.error('Error fetching profile:', error);
+          setProfileError(error.message);
+        } else if (data) {
+          setFullName(data.full_name || '');
+          setGender(data.gender || '');
+          setCity(data.city || '');
         }
+        setLoadingProfile(false);
       }
     };
     fetchProfile();
   }, [user]);
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    setLoadingProfile(true);
+    setProfileError(null);
+
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        full_name: fullName,
+        gender: gender,
+        city: city,
+        updated_at: new Date().toISOString(),
+      });
+
+    if (error) {
+      console.error('Error updating profile:', error);
+      setProfileError(error.message);
+    } else {
+      setShowPersonalDetailsModal(false);
+      alert('פרטים אישיים עודכנו בהצלחה!');
+    }
+    setLoadingProfile(false);
+  };
 
   const handleLogout = async () => {
     await signOut();
@@ -81,7 +119,14 @@ export default function DashboardPage() {
               {/* Dropdown Menu */}
               <div className={`dropdown-menu ${showMenu ? 'show' : ''}`}>
                   <Link href="#" onClick={() => setShowMenu(false)}>הגדרות</Link>
-                  <Link href="#" onClick={() => setShowMenu(false)}>פרטים אישיים</Link>
+                  <Link href="#"
+                    onClick={() => {
+                      setShowMenu(false);
+                      setShowPersonalDetailsModal(true);
+                    }}
+                  >
+                    פרטים אישיים
+                  </Link>
                   <Link href="#" onClick={() => setShowMenu(false)}>הקריאות שפתחתי</Link>
                   <Link href="#" onClick={() => setShowMenu(false)}>הקריאות שטיפלתי</Link>
                   <Link href="#" onClick={() => setShowMenu(false)}>צ'אטים</Link>
@@ -99,12 +144,6 @@ export default function DashboardPage() {
                   אפשרויות
               </h2>
               <nav className="space-y-4">
-                  <Link href="#" className="flex items-center py-3 px-4 rounded-xl text-base sm:text-lg font-medium text-gray-700 hover:bg-gray-100 transition duration-200">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 ml-3 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      פרטים אישיים
-                  </Link>
                   <div className="py-3 px-4 rounded-xl text-base sm:text-lg font-medium text-gray-700 bg-teal-50 border border-teal-200">
                       <label htmlFor="role-switch" className="block mb-2">סטטוס:</label>
                       <select
@@ -261,6 +300,71 @@ export default function DashboardPage() {
               </div>
           </main>
       </div>
+
+      {/* Personal Details Modal */}
+      {showPersonalDetailsModal && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-auto relative">
+            <button
+              onClick={() => setShowPersonalDetailsModal(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl font-bold"
+            >
+              &times;
+            </button>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">פרטים אישיים</h2>
+            
+            {loadingProfile && <p className="text-center text-blue-600">טוען פרטי פרופיל...</p>}
+            {profileError && <p className="text-center text-red-600">שגיאה: {profileError}</p>}
+
+            <form onSubmit={handleUpdateProfile} className="space-y-4">
+              <div>
+                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">שם מלא</label>
+                <input
+                  type="text"
+                  id="fullName"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="gender" className="block text-sm font-medium text-gray-700">מין</label>
+                <select
+                  id="gender"
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="">בחר מין</option>
+                  <option value="Male">זכר</option>
+                  <option value="Female">נקבה</option>
+                  <option value="Other">אחר</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="city" className="block text-sm font-medium text-gray-700">עיר</label>
+                <input
+                  type="text"
+                  id="city"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loadingProfile}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-sm transition duration-300 disabled:opacity-50"
+              >
+                {loadingProfile ? 'שומר...' : 'שמור שינויים'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
