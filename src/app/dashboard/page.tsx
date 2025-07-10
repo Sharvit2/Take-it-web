@@ -95,10 +95,8 @@ export default function DashboardPage() {
 
     if (error) {
       console.error('Error updating role:', error);
-      alert('שגיאה בעדכון סטטוס: ' + error.message);
     } else {
       setUserRole(newRole);
-      alert('הסטטוס עודכן בהצלחה ל- ' + (newRole === 'client' ? 'לקוח' : 'נותן שירות'));
     }
     setUpdatingRole(false);
   };
