@@ -20,10 +20,12 @@ export default function DashboardPage() {
   const [city, setCity] = useState<string>('');
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<'client' | 'provider'>('client'); // State for user's role (client/provider)
+  const [updatingRole, setUpdatingRole] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push('/login');
+      router.push('/');
     }
   }, [user, authLoading, router]);
 
@@ -34,7 +36,7 @@ export default function DashboardPage() {
         setProfileError(null);
         const { data, error } = await supabase
           .from('profiles')
-          .select('full_name, gender, city')
+          .select('full_name, gender, city, role') // Fetch role as well
           .eq('id', user.id)
           .single();
 
@@ -45,6 +47,7 @@ export default function DashboardPage() {
           setFullName(data.full_name || '');
           setGender(data.gender || '');
           setCity(data.city || '');
+          setUserRole(data.role || 'client'); // Set initial role from Supabase
         }
         setLoadingProfile(false);
       }
@@ -77,6 +80,27 @@ export default function DashboardPage() {
       alert('פרטים אישיים עודכנו בהצלחה!');
     }
     setLoadingProfile(false);
+  };
+
+  const handleToggleRole = async () => {
+    if (!user) return;
+
+    setUpdatingRole(true);
+    const newRole = userRole === 'client' ? 'provider' : 'client';
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ role: newRole })
+      .eq('id', user.id);
+
+    if (error) {
+      console.error('Error updating role:', error);
+      alert('שגיאה בעדכון סטטוס: ' + error.message);
+    } else {
+      setUserRole(newRole);
+      alert('הסטטוס עודכן בהצלחה ל- ' + (newRole === 'client' ? 'לקוח' : 'נותן שירות'));
+    }
+    setUpdatingRole(false);
   };
 
   const handleLogout = async () => {
@@ -139,22 +163,19 @@ export default function DashboardPage() {
       <div className="flex flex-1 flex-col md:flex-row p-4 md:p-8 gap-6 mobile-stack-gap">
           {/* Right Sidebar (for RTL) */}
           <aside className="w-full md:w-72 bg-white rounded-2xl shadow-lg p-6 flex-shrink-0">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6 border-b-2 border-teal-400 pb-2">
-                  אפשרויות
-              </h2>
+              <div className="flex items-center justify-between mb-6">
+                <button
+                  onClick={handleToggleRole}
+                  disabled={updatingRole}
+                  className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full shadow-md transition duration-300 disabled:opacity-50"
+                >
+                  {updatingRole ? 'מעדכן...' : (userRole === 'client' ? 'הפוך לנותן שירות' : 'הפוך ללקוח')}
+                </button>
+                <span className="text-base sm:text-lg font-semibold text-gray-700">
+                  סטטוס: {userRole === 'client' ? 'לקוח' : 'נותן שירות'}
+                </span>
+              </div>
               <nav className="space-y-4">
-                  <div className="py-3 px-4 rounded-xl text-base sm:text-lg font-medium text-gray-700 bg-teal-50 border border-teal-200">
-                      <label htmlFor="role-switch" className="block mb-2">סטטוס:</label>
-                      <select
-                        id="role-switch"
-                        className="w-full p-2 rounded-lg border border-gray-300 bg-white text-sm sm:text-base focus:ring-blue-500 focus:border-blue-500"
-                        value={selectedRole}
-                        onChange={(e) => setSelectedRole(e.target.value)}
-                      >
-                          <option value="client">לקוח</option>
-                          <option value="provider">נותן שירות</option>
-                      </select>
-                  </div>
                   <Link href="#" className="flex items-center py-3 px-4 rounded-xl text-base sm:text-lg font-medium text-gray-700 hover:bg-gray-100 transition duration-200">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 ml-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
