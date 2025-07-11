@@ -6,6 +6,19 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import MyOpenedCallsList from './MyOpenedCallsList'; // Import the new component
+import OpenCallsForProviders from './OpenCallsForProviders'; // Import the new component
+
+interface ServiceCall {
+  id: string;
+  title: string;
+  status: 'open' | 'in_progress' | 'closed';
+  description: string;
+  created_at: string;
+  category: string;
+  image_url: string | null;
+  price: number | null; // Added price
+  city: string | null; // Added city to ServiceCall interface
+}
 
 export default function DashboardPage() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -25,12 +38,14 @@ export default function DashboardPage() {
   const [updatingRole, setUpdatingRole] = useState(false);
   const [showNewRequestForm, setShowNewRequestForm] = useState(false); // New state for showing the new request form
   const [showMyOpenedCalls, setShowMyOpenedCalls] = useState(false); // New state for showing My Opened Calls list
+  const [editingRequest, setEditingRequest] = useState<ServiceCall | null>(null); // New state for editing
 
   // States for the new service request form
   const [requestTitle, setRequestTitle] = useState('');
   const [requestCategory, setRequestCategory] = useState('');
   const [requestDescription, setRequestDescription] = useState('');
   const [requestImage, setRequestImage] = useState<File | null>(null);
+  const [requestPrice, setRequestPrice] = useState<number | ''>(''); // New state for price
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -86,7 +101,8 @@ export default function DashboardPage() {
       setProfileError(error.message);
     } else {
       setShowPersonalDetailsModal(false);
-      alert('פרטים אישיים עודכנו בהצלחה!');
+      setProfileError('פרטים אישיים עודכנו בהצלחה!');
+      setTimeout(() => setProfileError(null), 3000);
     }
     setLoadingProfile(false);
   };
@@ -106,26 +122,120 @@ export default function DashboardPage() {
       console.error('Error updating role:', error);
     } else {
       setUserRole(newRole);
+      setProfileError('סטטוס עודכן בהצלחה!'); // Inline success message
+      setTimeout(() => setProfileError(null), 3000);
     }
     setUpdatingRole(false);
   };
 
   const handleNewRequestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send the request data to Supabase or an API
-    console.log({
-      requestTitle,
-      requestCategory,
-      requestDescription,
-      requestImage,
-    });
-    alert('פנייה חדשה נשלחה!'); // Temporary alert for demonstration
-    setShowNewRequestForm(false); // Close form after submission (for now)
-    // Reset form fields
+
+    if (!user) {
+      setProfileError('User not logged in.'); // Use inline error message
+      setTimeout(() => setProfileError(null), 3000);
+      return;
+    }
+
+    if (!requestTitle || !requestCategory || !requestDescription) {
+      setProfileError('Please fill in all required fields.'); // Use inline error message
+      setTimeout(() => setProfileError(null), 3000);
+      return;
+    }
+
+    setLoadingProfile(true);
+    setProfileError(null);
+
+    let imageUrl = null;
+    if (requestImage) {
+      const fileExtension = requestImage.name.split('.').pop();
+      const filePath = `${user.id}/${Date.now()}.${fileExtension}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('request_images')
+        .upload(filePath, requestImage);
+
+      if (uploadError) {
+        console.error('Error uploading image:', uploadError.message);
+        setProfileError('Failed to upload image.');
+        setLoadingProfile(false);
+        return;
+      }
+      imageUrl = uploadData.path;
+    }
+
+    let error;
+    if (editingRequest) {
+      // Update existing request
+      const { error: updateError } = await supabase
+        .from('requests')
+        .update({
+          title: requestTitle,
+          category: requestCategory,
+          description: requestDescription,
+          image_url: imageUrl,
+          price: requestPrice === '' ? null : requestPrice, // Save price
+          city: city, // Save city from user's profile
+        })
+        .eq('id', editingRequest.id);
+      error = updateError;
+    } else {
+      // Insert new request
+      const { error: insertError } = await supabase
+        .from('requests')
+        .insert({
+          seeker_id: user.id,
+          title: requestTitle,
+          category: requestCategory,
+          description: requestDescription,
+          image_url: imageUrl,
+          status: 'open',
+          created_at: new Date().toISOString(),
+          price: requestPrice === '' ? null : requestPrice, // Save price
+          city: city, // Save city from user's profile
+        });
+      error = insertError;
+    }
+
+    if (error) {
+      console.error('Error submitting request:', error.message);
+      setProfileError('Failed to submit request.');
+    } else {
+      setProfileError(editingRequest ? 'פנייה עודכנה בהצלחה!' : 'פנייה חדשה נשלחה בהצלחה!');
+      setTimeout(() => setProfileError(null), 3000);
+      setShowNewRequestForm(false);
+      setShowMyOpenedCalls(true); // Go back to the opened calls list after submission
+      setEditingRequest(null); // Clear editing state
+      setRequestTitle('');
+      setRequestCategory('');
+      setRequestDescription('');
+      setRequestImage(null);
+      setRequestPrice(''); // Clear price
+    }
+    setLoadingProfile(false);
+  };
+
+  const handleEditRequest = (call: ServiceCall) => {
+    setEditingRequest(call);
+    setRequestTitle(call.title);
+    setRequestCategory(call.category);
+    setRequestDescription(call.description);
+    setRequestPrice(call.price || ''); // Pre-fill price
+    // Note: Image handling for editing is more complex. For now, we won't pre-fill or show existing image.
+    // If a new image is selected, it will replace the old one upon submission.
+    setRequestImage(null);
+    setShowNewRequestForm(true); // Show the form
+    setShowMyOpenedCalls(false); // Hide the list
+  };
+
+  const handleCancelEdit = () => {
+    setEditingRequest(null);
+    setShowNewRequestForm(false);
+    setShowMyOpenedCalls(true); // Go back to the opened calls list
     setRequestTitle('');
     setRequestCategory('');
     setRequestDescription('');
     setRequestImage(null);
+    setRequestPrice(''); // Clear price
   };
 
   const handleLogout = async () => {
@@ -191,6 +301,7 @@ export default function DashboardPage() {
                       setShowMenu(false);
                       setShowMyOpenedCalls(true);
                       setShowNewRequestForm(false);
+                      setEditingRequest(null); // Clear editing state when viewing list
                     }}
                   >הקריאות שפתחתי</Link>
                   <Link href="#" onClick={() => setShowMenu(false)}>הקריאות שטיפלתי</Link>
@@ -220,6 +331,11 @@ export default function DashboardPage() {
                   סטטוס: {userRole === 'client' ? 'לקוח' : 'נותן שירות'}
                 </span>
               </div>
+              {profileError && (
+                <div className={`text-center mt-4 p-2 rounded-md text-sm ${profileError.includes('שגיאה') || profileError.includes('Failed') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                  {profileError}
+                </div>
+              )}
               
               {/* Removed conditional buttons for 'פתח קריאת שירות חדשה' and 'צפה בקריאות פתוחות' */}
 
@@ -229,16 +345,16 @@ export default function DashboardPage() {
           <main className="flex-1 bg-white rounded-2xl shadow-lg p-6">
               {userRole === 'client' ? (
                 showMyOpenedCalls ? (
-                  <MyOpenedCallsList />
+                  <MyOpenedCallsList onEdit={handleEditRequest} />
                 ) : showNewRequestForm ? (
                   <div className="relative p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-inner border border-blue-200">
                     <button
-                      onClick={() => setShowNewRequestForm(false)}
+                      onClick={() => editingRequest ? handleCancelEdit() : setShowNewRequestForm(false)}
                       className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl font-bold p-1 rounded-full hover:bg-gray-200 transition duration-200"
                     >
                       &times;
                     </button>
-                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 text-center">פתח פנייה חדשה</h2>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 text-center">{editingRequest ? 'ערוך פנייה' : 'פתח פנייה חדשה'}</h2>
                     
                     <form onSubmit={handleNewRequestSubmit} className="space-y-6">
                       <div>
@@ -284,6 +400,19 @@ export default function DashboardPage() {
                       </div>
 
                       <div>
+                        <label htmlFor="requestPrice" className="block text-sm font-medium text-gray-700 mb-1">מחיר מוצע (אופציונלי):</label>
+                        <input
+                          type="number"
+                          id="requestPrice"
+                          value={requestPrice}
+                          onChange={(e) => setRequestPrice(parseFloat(e.target.value) || '')}
+                          className="mt-1 block w-full px-4 py-2 border-2 border-blue-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
+                          placeholder="הכנס מחיר מוצע (אופציונלי)"
+                          step="0.01" // Allow decimal values
+                        />
+                      </div>
+
+                      <div>
                         <label htmlFor="requestImage" className="block text-sm font-medium text-gray-700 mb-1">תמונה (אופציונלי):</label>
                         <input
                           type="file"
@@ -292,14 +421,26 @@ export default function DashboardPage() {
                           onChange={(e) => setRequestImage(e.target.files ? e.target.files[0] : null)}
                           className="mt-1 block w-full text-sm text-gray-800 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
+                        {editingRequest?.image_url && !requestImage && (
+                          <p className="text-gray-500 text-sm mt-2">קיימת תמונה: <a href={`https://tnhbfrdczpizyeffsmtr.supabase.co/storage/v1/object/public/request_images/${editingRequest.image_url}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">צפה בתמונה</a></p>
+                        )}
                       </div>
 
                       <button
                         type="submit"
                         className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 transform hover:scale-105"
                       >
-                        שלח פנייה
+                        {editingRequest ? 'עדכן פנייה' : 'שלח פנייה'}
                       </button>
+                      {editingRequest && (
+                        <button
+                          type="button"
+                          onClick={handleCancelEdit}
+                          className="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 transform hover:scale-105 mt-2"
+                        >
+                          ביטול
+                        </button>
+                      )}
                     </form>
                   </div>
                 ) : (
@@ -307,7 +448,7 @@ export default function DashboardPage() {
                     <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 text-center">ברוך הבא ללוח המחוונים של הלקוח!</h2>
                     <p className="text-lg text-gray-600 mb-8 text-center">כאן תוכל לנהל את קריאות השירות שלך.</p>
                     <button
-                      onClick={() => setShowNewRequestForm(true)}
+                      onClick={() => {setShowNewRequestForm(true); setEditingRequest(null);}}
                       className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300 transform hover:scale-105"
                     >
                       פתח פנייה חדשה
@@ -315,11 +456,7 @@ export default function DashboardPage() {
                   </div>
                 )
               ) : (
-                <div className="flex flex-col items-center justify-center h-full p-4">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 text-center">ברוך הבא ללוח המחוונים של נותן השירות!</h2>
-                  <p className="text-lg text-gray-600 mb-8 text-center">כאן תוכל לצפות ולנהל קריאות שירות באזורך.</p>
-                  {/* Add content specific to service providers here */}
-                </div>
+                <OpenCallsForProviders providerCity={city} currentUserId={user?.id} />
               )}
           </main>
       </div>
