@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import MyOpenedCallsList from './MyOpenedCallsList'; // Import the new component
 import OpenCallsForProviders from './OpenCallsForProviders'; // Import the new component
+import CallsIHandledList from './CallsIHandledList'; // Import the new component
 
 interface ServiceCall {
   id: string;
@@ -20,10 +21,11 @@ interface ServiceCall {
   location: string | null; // Changed from city to location
 }
 
+type ActiveView = 'callsInMyArea' | 'myOpenedCalls' | 'callsIHandled' | 'newRequestForm';
+
 export default function DashboardPage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const router = useRouter();
-  const [selectedRole, setSelectedRole] = useState('client'); // State for role switch (not used with new toggle)
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortOrder, setSortOrder] = useState('');
@@ -31,23 +33,20 @@ export default function DashboardPage() {
   const [showPersonalDetailsModal, setShowPersonalDetailsModal] = useState(false); // State for personal details modal
   const [fullName, setFullName] = useState<string>(''); // State for user's full name
   const [gender, setGender] = useState<string>('');
-  const [city, setCity] = useState<string>('');
+  const [city, setCity] = useState<string>(''); // User's city for location filtering
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<'client' | 'provider'>('client'); // State for user's role (client/provider)
-  const [updatingRole, setUpdatingRole] = useState(false);
-  const [showNewRequestForm, setShowNewRequestForm] = useState(false); // New state for showing the new request form
-  const [showMyOpenedCalls, setShowMyOpenedCalls] = useState(false); // New state for showing My Opened Calls list
-  const [editingRequest, setEditingRequest] = useState<ServiceCall | null>(null); // New state for editing
+  const [activeView, setActiveView] = useState<ActiveView>('callsInMyArea'); // Default view
 
   // States for the new service request form
   const [requestTitle, setRequestTitle] = useState('');
   const [requestCategory, setRequestCategory] = useState('');
   const [requestDescription, setRequestDescription] = useState('');
   const [requestImage, setRequestImage] = useState<File | null>(null);
-  const [requestPrice, setRequestPrice] = useState<number | ''>(''); // New state for price
-  const [requestCity, setRequestCity] = useState(''); // New state for city
-  const [requestNeighborhood, setRequestNeighborhood] = useState(''); // New state for neighborhood
+  const [requestPrice, setRequestPrice] = useState<number | ''>('');
+  const [requestCity, setRequestCity] = useState('');
+  const [requestNeighborhood, setRequestNeighborhood] = useState('');
+  const [editingRequest, setEditingRequest] = useState<ServiceCall | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -62,7 +61,7 @@ export default function DashboardPage() {
         setProfileError(null);
         const { data, error } = await supabase
           .from('profiles')
-          .select('full_name, gender, city, role') // Fetch role as well
+          .select('full_name, gender, city') // Only fetch these fields, role is no longer relevant here
           .eq('id', user.id)
           .single();
 
@@ -73,7 +72,6 @@ export default function DashboardPage() {
           setFullName(data.full_name || '');
           setGender(data.gender || '');
           setCity(data.city || '');
-          setUserRole(data.role || 'client'); // Set initial role from Supabase
         }
         setLoadingProfile(false);
       }
@@ -109,38 +107,17 @@ export default function DashboardPage() {
     setLoadingProfile(false);
   };
 
-  const handleToggleRole = async () => {
-    if (!user) return;
-
-    setUpdatingRole(true);
-    const newRole = userRole === 'client' ? 'provider' : 'client';
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ role: newRole })
-      .eq('id', user.id);
-
-    if (error) {
-      console.error('Error updating role:', error);
-    } else {
-      setUserRole(newRole);
-      setProfileError('סטטוס עודכן בהצלחה!'); // Inline success message
-      setTimeout(() => setProfileError(null), 3000);
-    }
-    setUpdatingRole(false);
-  };
-
   const handleNewRequestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!user) {
-      setProfileError('User not logged in.'); // Use inline error message
+      setProfileError('User not logged in.');
       setTimeout(() => setProfileError(null), 3000);
       return;
     }
 
     if (!requestTitle || !requestCategory || !requestDescription || !requestPrice || !requestCity) {
-      setProfileError('Please fill in all required fields.'); // Use inline error message
+      setProfileError('Please fill in all required fields.');
       setTimeout(() => setProfileError(null), 3000);
       return;
     }
@@ -153,7 +130,7 @@ export default function DashboardPage() {
       const fileExtension = requestImage.name.split('.').pop();
       const filePath = `${user.id}/${Date.now()}.${fileExtension}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('requests-images') // Corrected bucket name
+        .from('requests-images')
         .upload(filePath, requestImage);
 
       if (uploadError) {
@@ -175,8 +152,8 @@ export default function DashboardPage() {
           category: requestCategory,
           description: requestDescription,
           image_url: imageUrl,
-          price: requestPrice, // Price is mandatory now
-          location: requestNeighborhood ? `${requestCity}, ${requestNeighborhood}` : requestCity, // Concatenate city and neighborhood
+          price: requestPrice,
+          location: requestNeighborhood ? `${requestCity}, ${requestNeighborhood}` : requestCity,
         })
         .eq('id', editingRequest.id);
       error = updateError;
@@ -192,8 +169,8 @@ export default function DashboardPage() {
           image_url: imageUrl,
           status: 'open',
           created_at: new Date().toISOString(),
-          price: requestPrice, // Price is mandatory now
-          location: requestNeighborhood ? `${requestCity}, ${requestNeighborhood}` : requestCity, // Concatenate city and neighborhood
+          price: requestPrice,
+          location: requestNeighborhood ? `${requestCity}, ${requestNeighborhood}` : requestCity,
         });
       error = insertError;
     }
@@ -204,16 +181,15 @@ export default function DashboardPage() {
     } else {
       setProfileError(editingRequest ? 'פנייה עודכנה בהצלחה!' : 'פנייה חדשה נשלחה בהצלחה!');
       setTimeout(() => setProfileError(null), 3000);
-      setShowNewRequestForm(false);
-      setShowMyOpenedCalls(true); // Go back to the opened calls list after submission
-      setEditingRequest(null); // Clear editing state
+      setActiveView('myOpenedCalls'); // Go back to the opened calls list after submission
+      setEditingRequest(null);
       setRequestTitle('');
       setRequestCategory('');
       setRequestDescription('');
       setRequestImage(null);
-      setRequestPrice(''); // Clear price
-      setRequestCity(''); // Clear city
-      setRequestNeighborhood(''); // Clear neighborhood
+      setRequestPrice('');
+      setRequestCity('');
+      setRequestNeighborhood('');
     }
     setLoadingProfile(false);
   };
@@ -223,7 +199,7 @@ export default function DashboardPage() {
     setRequestTitle(call.title);
     setRequestCategory(call.category);
     setRequestDescription(call.description);
-    setRequestPrice(call.price || ''); // Pre-fill price
+    setRequestPrice(call.price || '');
 
     if (call.location) {
       const parts = call.location.split(', ');
@@ -234,24 +210,20 @@ export default function DashboardPage() {
       setRequestNeighborhood('');
     }
 
-    // Note: Image handling for editing is more complex. For now, we won't pre-fill or show existing image.
-    // If a new image is selected, it will replace the old one upon submission.
     setRequestImage(null);
-    setShowNewRequestForm(true); // Show the form
-    setShowMyOpenedCalls(false); // Hide the list
+    setActiveView('newRequestForm'); // Show the form
   };
 
   const handleCancelEdit = () => {
     setEditingRequest(null);
-    setShowNewRequestForm(false);
-    setShowMyOpenedCalls(true); // Go back to the opened calls list
+    setActiveView('myOpenedCalls'); // Go back to the opened calls list
     setRequestTitle('');
     setRequestCategory('');
     setRequestDescription('');
     setRequestImage(null);
-    setRequestPrice(''); // Clear price
-    setRequestCity(''); // Clear city
-    setRequestNeighborhood(''); // Clear neighborhood
+    setRequestPrice('');
+    setRequestCity('');
+    setRequestNeighborhood('');
   };
 
   const handleLogout = async () => {
@@ -312,15 +284,7 @@ export default function DashboardPage() {
                   >
                     פרטים אישיים
                   </Link>
-                  <Link href="#"
-                    onClick={() => {
-                      setShowMenu(false);
-                      setShowMyOpenedCalls(true);
-                      setShowNewRequestForm(false);
-                      setEditingRequest(null); // Clear editing state when viewing list
-                    }}
-                  >הקריאות שפתחתי</Link>
-                  <Link href="#" onClick={() => setShowMenu(false)}>הקריאות שטיפלתי</Link>
+                  {/* Removed old links: הקריאות שפתחתי and הקריאות שטיפלתי */}
                   <Link href="#" onClick={() => setShowMenu(false)}>צ'אטים</Link>
                   <Link href="#" onClick={() => setShowMenu(false)}>שאלות ותשובות</Link>
               </div>
@@ -329,43 +293,64 @@ export default function DashboardPage() {
 
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col md:flex-row p-4 md:p-8 gap-6 mobile-stack-gap">
-          {/* Right Sidebar (for RTL) */}
+          {/* Right Sidebar (for RTL) - New Navigation Buttons */}
           <aside className="w-full md:w-72 bg-white rounded-2xl shadow-lg p-6 flex-shrink-0">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-col space-y-4">
                 <button
-                  onClick={handleToggleRole}
-                  disabled={updatingRole}
-                  className={`font-bold py-2 px-4 rounded-full shadow-md transition duration-300 ${updatingRole ? 'opacity-50 cursor-not-allowed' : ''}
-                    ${userRole === 'client'
-                      ? 'bg-purple-600 hover:bg-purple-700 text-white transform hover:scale-105'
-                      : 'bg-green-600 hover:bg-green-700 text-white transform hover:scale-105'
-                    }`}
+                  onClick={() => setActiveView('callsInMyArea')}
+                  className={`w-full font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 transform hover:scale-105
+                    ${activeView === 'callsInMyArea' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-teal-100'}`}
                 >
-                  {updatingRole ? 'מעדכן...' : (userRole === 'client' ? 'הפוך לנותן שירות' : 'הפוך ללקוח')}
+                  קריאות באזורי
                 </button>
-                <span className={`text-lg font-semibold px-3 py-1 rounded-full ${userRole === 'client' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'}`}>
-                  סטטוס: {userRole === 'client' ? 'לקוח' : 'נותן שירות'}
-                </span>
+                <button
+                  onClick={() => setActiveView('myOpenedCalls')}
+                  className={`w-full font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 transform hover:scale-105
+                    ${activeView === 'myOpenedCalls' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-blue-100'}`}
+                >
+                  קריאות שלי
+                </button>
+                <button
+                  onClick={() => setActiveView('callsIHandled')}
+                  className={`w-full font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 transform hover:scale-105
+                    ${activeView === 'callsIHandled' ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-purple-100'}`}
+                >
+                  קריאות שטיפלתי
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveView('newRequestForm');
+                    setEditingRequest(null); // Ensure new request form is clean
+                  }}
+                  className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 transform hover:scale-105"
+                >
+                  פתח פנייה חדשה
+                </button>
               </div>
+
               {profileError && (
                 <div className={`text-center mt-4 p-2 rounded-md text-sm ${profileError.includes('שגיאה') || profileError.includes('Failed') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
                   {profileError}
                 </div>
               )}
               
-              {/* Removed conditional buttons for 'פתח קריאת שירות חדשה' and 'צפה בקריאות פתוחות' */}
-
           </aside>
 
           {/* Main Content (Calls/Requests) */}
           <main className="flex-1 bg-white rounded-2xl shadow-lg p-6">
-              {userRole === 'client' ? (
-                showMyOpenedCalls ? (
-                  <MyOpenedCallsList onEdit={handleEditRequest} />
-                ) : showNewRequestForm ? (
+              {activeView === 'callsInMyArea' && (
+                <OpenCallsForProviders providerCity={city} currentUserId={user?.id} />
+              )}
+              {activeView === 'myOpenedCalls' && (
+                <MyOpenedCallsList onEdit={handleEditRequest} />
+              )}
+              {activeView === 'callsIHandled' && (
+                <CallsIHandledList currentUserId={user?.id} />
+              )}
+              {activeView === 'newRequestForm' && (
                   <div className="relative p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-inner border border-blue-200">
                     <button
-                      onClick={() => editingRequest ? handleCancelEdit() : setShowNewRequestForm(false)}
+                      onClick={() => editingRequest ? handleCancelEdit() : setActiveView('myOpenedCalls')}
                       className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl font-bold p-1 rounded-full hover:bg-gray-200 transition duration-200"
                     >
                       &times;
@@ -485,20 +470,6 @@ export default function DashboardPage() {
                       )}
                     </form>
                   </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-full p-4">
-                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 text-center">ברוך הבא ללוח המחוונים של הלקוח!</h2>
-                    <p className="text-lg text-gray-600 mb-8 text-center">כאן תוכל לנהל את קריאות השירות שלך.</p>
-                    <button
-                      onClick={() => {setShowNewRequestForm(true); setEditingRequest(null);}}
-                      className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300 transform hover:scale-105"
-                    >
-                      פתח פנייה חדשה
-                    </button>
-                  </div>
-                )
-              ) : (
-                <OpenCallsForProviders providerCity={city} currentUserId={user?.id} />
               )}
           </main>
       </div>
