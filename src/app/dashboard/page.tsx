@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase';
 export default function DashboardPage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const router = useRouter();
-  const [selectedRole, setSelectedRole] = useState('client'); // State for role switch
+  const [selectedRole, setSelectedRole] = useState('client'); // State for role switch (not used with new toggle)
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortOrder, setSortOrder] = useState('');
@@ -22,6 +22,13 @@ export default function DashboardPage() {
   const [profileError, setProfileError] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<'client' | 'provider'>('client'); // State for user's role (client/provider)
   const [updatingRole, setUpdatingRole] = useState(false);
+  const [showNewRequestForm, setShowNewRequestForm] = useState(false); // New state for showing the new request form
+
+  // States for the new service request form
+  const [requestTitle, setRequestTitle] = useState('');
+  const [requestCategory, setRequestCategory] = useState('');
+  const [requestDescription, setRequestDescription] = useState('');
+  const [requestImage, setRequestImage] = useState<File | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -101,6 +108,24 @@ export default function DashboardPage() {
     setUpdatingRole(false);
   };
 
+  const handleNewRequestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you would typically send the request data to Supabase or an API
+    console.log({
+      requestTitle,
+      requestCategory,
+      requestDescription,
+      requestImage,
+    });
+    alert('פנייה חדשה נשלחה!'); // Temporary alert for demonstration
+    setShowNewRequestForm(false); // Close form after submission (for now)
+    // Reset form fields
+    setRequestTitle('');
+    setRequestCategory('');
+    setRequestDescription('');
+    setRequestImage(null);
+  };
+
   const handleLogout = async () => {
     await signOut();
     router.push('/');
@@ -113,6 +138,16 @@ export default function DashboardPage() {
       </div>
     );
   }
+
+  const categories = [
+    'אינסטלציה',
+    'ניקיון',
+    'בייביסיטר',
+    'הובלות קטנות',
+    'שיעורים פרטיים',
+    'יופי וטיפוח',
+    'אחר',
+  ];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -185,17 +220,100 @@ export default function DashboardPage() {
           {/* Main Content (Calls/Requests) */}
           <main className="flex-1 bg-white rounded-2xl shadow-lg p-6">
               {userRole === 'client' ? (
-                <div className="text-center py-12">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">
-                    רוצה לפתוח פנייה חדשה?
-                  </h2>
-                  <p className="text-lg text-gray-600 mb-8">
-                    שתף מה אתה צריך, קבע מחיר, ותן לנותני השירות לקחת את זה!
-                  </p>
-                  <button className="bg-teal-600 hover:bg-teal-700 text-white text-xl font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105">
-                    פתח פנייה
-                  </button>
-                </div>
+                showNewRequestForm ? (
+                  <div className="relative p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-inner border border-blue-200">
+                    <button
+                      onClick={() => setShowNewRequestForm(false)}
+                      className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl font-bold p-1 rounded-full hover:bg-gray-200 transition duration-200"
+                    >
+                      &times;
+                    </button>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 text-center">פתח פנייה חדשה</h2>
+                    
+                    <form onSubmit={handleNewRequestSubmit} className="space-y-6">
+                      <div>
+                        <label htmlFor="requestTitle" className="block text-sm font-medium text-gray-700 mb-1">כותרת:</label>
+                        <input
+                          type="text"
+                          id="requestTitle"
+                          value={requestTitle}
+                          onChange={(e) => setRequestTitle(e.target.value)}
+                          className="mt-1 block w-full px-4 py-2 border-2 border-blue-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
+                          placeholder="הכנס כותרת לפנייה..."
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="requestCategory" className="block text-sm font-medium text-gray-700 mb-1">קטגוריה:</label>
+                        <select
+                          id="requestCategory"
+                          value={requestCategory}
+                          onChange={(e) => setRequestCategory(e.target.value)}
+                          className="mt-1 block w-full px-4 py-2 border-2 border-blue-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
+                          required
+                        >
+                          <option value="">בחר קטגוריה</option>
+                          {categories.map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label htmlFor="requestDescription" className="block text-sm font-medium text-gray-700 mb-1">תיאור (טקסט חופשי):</label>
+                        <textarea
+                          id="requestDescription"
+                          value={requestDescription}
+                          onChange={(e) => setRequestDescription(e.target.value)}
+                          rows={4}
+                          className="mt-1 block w-full px-4 py-2 border-2 border-blue-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
+                          placeholder="פרט את הפנייה שלך...
+"
+                          required
+                        ></textarea>
+                      </div>
+
+                      <div>
+                        <label htmlFor="requestImage" className="block text-sm font-medium text-gray-700 mb-1">הוסף תמונה:</label>
+                        <input
+                          type="file"
+                          id="requestImage"
+                          accept="image/*"
+                          onChange={(e) => setRequestImage(e.target.files ? e.target.files[0] : null)}
+                          className="mt-1 block w-full text-sm text-gray-800
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-purple-50 file:text-purple-700
+                            hover:file:bg-purple-100 transition duration-200"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="w-full bg-teal-600 hover:bg-teal-700 text-white text-lg font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105"
+                      >
+                        שלח פנייה
+                      </button>
+                    </form>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">
+                      רוצה לפתוח פנייה חדשה?
+                    </h2>
+                    <p className="text-lg text-gray-600 mb-8">
+                      שתף מה אתה צריך, קבע מחיר, ותן לנותני השירות לקחת את זה!
+                    </p>
+                    <button
+                      onClick={() => setShowNewRequestForm(true)}
+                      className="bg-teal-600 hover:bg-teal-700 text-white text-xl font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105"
+                    >
+                      פתח פנייה
+                    </button>
+                  </div>
+                )
               ) : (
                 <>
                   <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6 border-b-2 border-teal-400 pb-2">
@@ -334,7 +452,7 @@ export default function DashboardPage() {
                   id="fullName"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
                   required
                 />
               </div>
@@ -344,7 +462,7 @@ export default function DashboardPage() {
                   id="gender"
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
                   required
                 >
                   <option value="">בחר מין</option>
@@ -360,7 +478,7 @@ export default function DashboardPage() {
                   id="city"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
                   required
                 />
               </div>
