@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import MyOpenedCallsList from './MyOpenedCallsList'; // Import the new component
 
 export default function DashboardPage() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -23,6 +24,7 @@ export default function DashboardPage() {
   const [userRole, setUserRole] = useState<'client' | 'provider'>('client'); // State for user's role (client/provider)
   const [updatingRole, setUpdatingRole] = useState(false);
   const [showNewRequestForm, setShowNewRequestForm] = useState(false); // New state for showing the new request form
+  const [showMyOpenedCalls, setShowMyOpenedCalls] = useState(false); // New state for showing My Opened Calls list
 
   // States for the new service request form
   const [requestTitle, setRequestTitle] = useState('');
@@ -184,7 +186,13 @@ export default function DashboardPage() {
                   >
                     פרטים אישיים
                   </Link>
-                  <Link href="#" onClick={() => setShowMenu(false)}>הקריאות שפתחתי</Link>
+                  <Link href="#"
+                    onClick={() => {
+                      setShowMenu(false);
+                      setShowMyOpenedCalls(true);
+                      setShowNewRequestForm(false);
+                    }}
+                  >הקריאות שפתחתי</Link>
                   <Link href="#" onClick={() => setShowMenu(false)}>הקריאות שטיפלתי</Link>
                   <Link href="#" onClick={() => setShowMenu(false)}>צ'אטים</Link>
                   <Link href="#" onClick={() => setShowMenu(false)}>שאלות ותשובות</Link>
@@ -220,7 +228,9 @@ export default function DashboardPage() {
           {/* Main Content (Calls/Requests) */}
           <main className="flex-1 bg-white rounded-2xl shadow-lg p-6">
               {userRole === 'client' ? (
-                showNewRequestForm ? (
+                showMyOpenedCalls ? (
+                  <MyOpenedCallsList />
+                ) : showNewRequestForm ? (
                   <div className="relative p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-inner border border-blue-200">
                     <button
                       onClick={() => setShowNewRequestForm(false)}
@@ -254,177 +264,62 @@ export default function DashboardPage() {
                           required
                         >
                           <option value="">בחר קטגוריה</option>
-                          {categories.map(cat => (
-                            <option key={cat} value={cat}>{cat}</option>
+                          {categories.map((category) => (
+                            <option key={category} value={category}>{category}</option>
                           ))}
                         </select>
                       </div>
 
                       <div>
-                        <label htmlFor="requestDescription" className="block text-sm font-medium text-gray-700 mb-1">תיאור (טקסט חופשי):</label>
+                        <label htmlFor="requestDescription" className="block text-sm font-medium text-gray-700 mb-1">תיאור:</label>
                         <textarea
                           id="requestDescription"
                           value={requestDescription}
                           onChange={(e) => setRequestDescription(e.target.value)}
                           rows={4}
                           className="mt-1 block w-full px-4 py-2 border-2 border-blue-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
-                          placeholder="פרט את הפנייה שלך...
-"
+                          placeholder="פרט את הפנייה..."
                           required
                         ></textarea>
                       </div>
 
                       <div>
-                        <label htmlFor="requestImage" className="block text-sm font-medium text-gray-700 mb-1">הוסף תמונה:</label>
+                        <label htmlFor="requestImage" className="block text-sm font-medium text-gray-700 mb-1">תמונה (אופציונלי):</label>
                         <input
                           type="file"
                           id="requestImage"
                           accept="image/*"
                           onChange={(e) => setRequestImage(e.target.files ? e.target.files[0] : null)}
-                          className="mt-1 block w-full text-sm text-gray-800
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded-full file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-purple-50 file:text-purple-700
-                            hover:file:bg-purple-100 transition duration-200"
+                          className="mt-1 block w-full text-sm text-gray-800 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
                       </div>
 
                       <button
                         type="submit"
-                        className="w-full bg-teal-600 hover:bg-teal-700 text-white text-lg font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105"
+                        className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 transform hover:scale-105"
                       >
                         שלח פנייה
                       </button>
                     </form>
                   </div>
                 ) : (
-                  <div className="text-center py-12">
-                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">
-                      רוצה לפתוח פנייה חדשה?
-                    </h2>
-                    <p className="text-lg text-gray-600 mb-8">
-                      שתף מה אתה צריך, קבע מחיר, ותן לנותני השירות לקחת את זה!
-                    </p>
+                  <div className="flex flex-col items-center justify-center h-full p-4">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 text-center">ברוך הבא ללוח המחוונים של הלקוח!</h2>
+                    <p className="text-lg text-gray-600 mb-8 text-center">כאן תוכל לנהל את קריאות השירות שלך.</p>
                     <button
                       onClick={() => setShowNewRequestForm(true)}
-                      className="bg-teal-600 hover:bg-teal-700 text-white text-xl font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105"
+                      className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300 transform hover:scale-105"
                     >
-                      פתח פנייה
+                      פתח פנייה חדשה
                     </button>
                   </div>
                 )
               ) : (
-                <>
-                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6 border-b-2 border-teal-400 pb-2">
-                      קריאות פתוחות באזורך
-                  </h2>
-
-                  {/* Filter/Sort Options */}
-                  <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                      <input
-                        type="text"
-                        placeholder="חפש קריאה..."
-                        className="p-2 sm:p-3 border border-gray-300 rounded-xl w-full sm:w-auto flex-grow text-sm sm:text-base focus:ring-blue-500 focus:border-blue-500"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                      <select
-                        className="p-2 sm:p-3 border border-gray-300 rounded-xl bg-white w-full sm:w-auto text-sm sm:text-base focus:ring-blue-500 focus:border-blue-500"
-                        value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
-                      >
-                          <option value="">סנן לפי קטגוריה</option>
-                          <option value="plumbing">אינסטלציה</option>
-                          <option value="cleaning">ניקיון</option>
-                          {/* More categories */}
-                      </select>
-                      <select
-                        className="p-2 sm:p-3 border border-gray-300 rounded-xl bg-white w-full sm:w-auto text-sm sm:text-base focus:ring-blue-500 focus:border-blue-500"
-                        value={sortOrder}
-                        onChange={(e) => setSortOrder(e.target.value)}
-                      >
-                          <option value="">מיין לפי</option>
-                          <option value="newest">החדש ביותר</option>
-                          <option value="price-high">מחיר (גבוה לנמוך)</option>
-                          <option value="price-low">מחיר (נמוך לגבוה)</option>
-                      </select>
-                  </div>
-
-                  {/* Calls/Requests List */}
-                  <div className="space-y-6">
-                      {/* Example Call Card 1 */}
-                      <div className="bg-gray-50 p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition duration-200">
-                          <div className="flex justify-between items-start mb-3 flex-wrap">
-                              <div className="flex-grow">
-                                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900">תיקון נזילה בכיור</h3>
-                                  <p className="text-gray-600 text-xs sm:text-sm">פורסם לפני 10 דקות</p>
-                              </div>
-                              <span className="text-xl sm:text-2xl font-bold text-green-600 mt-2 sm:mt-0 mr-auto sm:mr-0">₪150</span>
-                          </div>
-                          <p className="text-gray-700 text-sm sm:text-base mb-4">
-                              דרוש אינסטלטור לתיקון נזילה קלה בכיור המטבח. עדיפות לזמינות מיידית.
-                          </p>
-                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs sm:text-sm text-gray-500 gap-2 sm:gap-0">
-                              <span className="bg-teal-100 text-teal-800 px-2.5 py-0.5 rounded-full">אינסטלציה</span>
-                              <span>אזור: תל אביב - מרכז</span>
-                          </div>
-                          <div className="mt-4 text-left">
-                              <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 w-full sm:w-auto">
-                                  קח את המשימה
-                              </button>
-                          </div>
-                      </div>
-
-                      {/* Example Call Card 2 */}
-                      <div className="bg-gray-50 p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition duration-200">
-                          <div className="flex justify-between items-start mb-3 flex-wrap">
-                              <div className="flex-grow">
-                                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900">ניקיון דירה קטנה לפני מעבר</h3>
-                                  <p className="text-gray-600 text-xs sm:text-sm">פורסם לפני שעה</p>
-                              </div>
-                              <span className="text-xl sm:text-2xl font-bold text-green-600 mt-2 sm:mt-0 mr-auto sm:mr-0">₪300</span>
-                          </div>
-                          <p className="text-gray-700 text-sm sm:text-base mb-4">
-                              ניקיון יסודי לדירת 2 חדרים (50 מ"ר) כולל חלונות ומטבח. נדרש ליום ראשון הקרוב.
-                          </p>
-                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs sm:text-sm text-gray-500 gap-2 sm:gap-0">
-                              <span className="bg-purple-100 text-purple-800 px-2.5 py-0.5 rounded-full">ניקיון</span>
-                              <span>אזור: ירושלים - רחביה</span>
-                          </div>
-                          <div className="mt-4 text-left">
-                              <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 w-full sm:w-auto">
-                                  קח את המשימה
-                              </button>
-                          </div>
-                      </div>
-
-                      {/* Example Call Card 3 */}
-                      <div className="bg-gray-50 p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition duration-200">
-                          <div className="flex justify-between items-start mb-3 flex-wrap">
-                              <div className="flex-grow">
-                                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900">בייביסיטר לילד בן 4</h3>
-                                  <p className="text-gray-600 text-xs sm:text-sm">פורסם לפני 3 שעות</p>
-                              </div>
-                              <span className="text-xl sm:text-2xl font-bold text-green-600 mt-2 sm:mt-0 mr-auto sm:mr-0">₪80</span>
-                          </div>
-                          <p className="text-gray-700 text-sm sm:text-base mb-4">
-                              מחפשת בייביסיטר אחראית ליום חמישי בערב (18:00-21:00).
-                          </p>
-                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs sm:text-sm text-gray-500 gap-2 sm:gap-0">
-                              <span className="bg-pink-100 text-pink-800 px-2.5 py-0.5 rounded-full">בייביסיטר</span>
-                              <span>אזור: חיפה - כרמל</span>
-                          </div>
-                          <div className="mt-4 text-left">
-                              <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 w-full sm:w-auto">
-                                  קח את המשימה
-                              </button>
-                          </div>
-                      </div>
-
-                      {/* Add more call cards as needed */}
-                  </div>
-                </>
+                <div className="flex flex-col items-center justify-center h-full p-4">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 text-center">ברוך הבא ללוח המחוונים של נותן השירות!</h2>
+                  <p className="text-lg text-gray-600 mb-8 text-center">כאן תוכל לצפות ולנהל קריאות שירות באזורך.</p>
+                  {/* Add content specific to service providers here */}
+                </div>
               )}
           </main>
       </div>
