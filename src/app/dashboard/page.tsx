@@ -151,7 +151,7 @@ export default function DashboardPage() {
       const fileExtension = requestImage.name.split('.').pop();
       const filePath = `${user.id}/${Date.now()}.${fileExtension}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('request_images')
+        .from('requests-images') // Corrected bucket name
         .upload(filePath, requestImage);
 
       if (uploadError) {
@@ -422,7 +422,7 @@ export default function DashboardPage() {
                           className="mt-1 block w-full text-sm text-gray-800 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
                         {editingRequest?.image_url && !requestImage && (
-                          <p className="text-gray-500 text-sm mt-2">קיימת תמונה: <a href={`https://tnhbfrdczpizyeffsmtr.supabase.co/storage/v1/object/public/request_images/${editingRequest.image_url}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">צפה בתמונה</a></p>
+                          <p className="text-gray-500 text-sm mt-2">קיימת תמונה: <a href={`https://tnhbfrdczpizyeffsmtr.supabase.co/storage/v1/object/public/requests-images/${editingRequest.image_url}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">צפה בתמונה</a></p>
                         )}
                       </div>
 
