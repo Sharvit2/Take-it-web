@@ -10,8 +10,8 @@ interface ServiceCall {
   created_at: string;
   category: string; // Added category
   image_url: string | null; // Added image_url
-  price: number | null; // Added price
-  city: string | null; // Added city
+  price: number; // Price is now mandatory
+  location: string | null; // Changed from city to location
 }
 
 interface MyOpenedCallsListProps {
@@ -35,7 +35,7 @@ const MyOpenedCallsList: React.FC<MyOpenedCallsListProps> = ({ onEdit }) => {
 
     const { data, error: fetchError } = await supabase
       .from('requests') // Changed from service_calls to requests
-      .select('id, title, status, description, created_at, category, image_url, price, city') // Select new columns including city
+      .select('id, title, status, description, created_at, category, image_url, price, location') // Select new columns including location
       .eq('seeker_id', user.id); // Changed from user_id to seeker_id
 
     if (fetchError) {
@@ -91,7 +91,7 @@ const MyOpenedCallsList: React.FC<MyOpenedCallsListProps> = ({ onEdit }) => {
           <p className="text-gray-700 dark:text-gray-300 text-sm mb-4">{call.description}</p>
           <p className="text-gray-500 dark:text-gray-500 text-xs mb-4">נפתח: {new Date(call.created_at).toLocaleString()}</p>
           <p className="text-gray-500 dark:text-gray-500 text-xs mb-4">קטגוריה: {call.category}</p>
-          {call.city && <p className="text-gray-500 dark:text-gray-500 text-xs mb-4">עיר: {call.city}</p>}
+          {call.location && <p className="text-gray-500 dark:text-gray-500 text-xs mb-4">אזור: {call.location}</p>}
 
           <div className="flex justify-end space-x-2">
             <button

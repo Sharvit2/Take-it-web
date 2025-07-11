@@ -16,8 +16,8 @@ interface ServiceCall {
   created_at: string;
   category: string;
   image_url: string | null;
-  price: number | null; // Added price
-  city: string | null; // Added city to ServiceCall interface
+  price: number; // Price is now mandatory
+  location: string | null; // Changed from city to location
 }
 
 export default function DashboardPage() {
@@ -46,6 +46,8 @@ export default function DashboardPage() {
   const [requestDescription, setRequestDescription] = useState('');
   const [requestImage, setRequestImage] = useState<File | null>(null);
   const [requestPrice, setRequestPrice] = useState<number | ''>(''); // New state for price
+  const [requestCity, setRequestCity] = useState(''); // New state for city
+  const [requestNeighborhood, setRequestNeighborhood] = useState(''); // New state for neighborhood
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -137,7 +139,7 @@ export default function DashboardPage() {
       return;
     }
 
-    if (!requestTitle || !requestCategory || !requestDescription) {
+    if (!requestTitle || !requestCategory || !requestDescription || !requestPrice || !requestCity) {
       setProfileError('Please fill in all required fields.'); // Use inline error message
       setTimeout(() => setProfileError(null), 3000);
       return;
@@ -173,8 +175,8 @@ export default function DashboardPage() {
           category: requestCategory,
           description: requestDescription,
           image_url: imageUrl,
-          price: requestPrice === '' ? null : requestPrice, // Save price
-          city: city, // Save city from user's profile
+          price: requestPrice, // Price is mandatory now
+          location: requestNeighborhood ? `${requestCity}, ${requestNeighborhood}` : requestCity, // Concatenate city and neighborhood
         })
         .eq('id', editingRequest.id);
       error = updateError;
@@ -190,8 +192,8 @@ export default function DashboardPage() {
           image_url: imageUrl,
           status: 'open',
           created_at: new Date().toISOString(),
-          price: requestPrice === '' ? null : requestPrice, // Save price
-          city: city, // Save city from user's profile
+          price: requestPrice, // Price is mandatory now
+          location: requestNeighborhood ? `${requestCity}, ${requestNeighborhood}` : requestCity, // Concatenate city and neighborhood
         });
       error = insertError;
     }
@@ -210,6 +212,8 @@ export default function DashboardPage() {
       setRequestDescription('');
       setRequestImage(null);
       setRequestPrice(''); // Clear price
+      setRequestCity(''); // Clear city
+      setRequestNeighborhood(''); // Clear neighborhood
     }
     setLoadingProfile(false);
   };
@@ -220,6 +224,16 @@ export default function DashboardPage() {
     setRequestCategory(call.category);
     setRequestDescription(call.description);
     setRequestPrice(call.price || ''); // Pre-fill price
+
+    if (call.location) {
+      const parts = call.location.split(', ');
+      setRequestCity(parts[0] || '');
+      setRequestNeighborhood(parts[1] || '');
+    } else {
+      setRequestCity('');
+      setRequestNeighborhood('');
+    }
+
     // Note: Image handling for editing is more complex. For now, we won't pre-fill or show existing image.
     // If a new image is selected, it will replace the old one upon submission.
     setRequestImage(null);
@@ -236,6 +250,8 @@ export default function DashboardPage() {
     setRequestDescription('');
     setRequestImage(null);
     setRequestPrice(''); // Clear price
+    setRequestCity(''); // Clear city
+    setRequestNeighborhood(''); // Clear neighborhood
   };
 
   const handleLogout = async () => {
@@ -400,15 +416,41 @@ export default function DashboardPage() {
                       </div>
 
                       <div>
-                        <label htmlFor="requestPrice" className="block text-sm font-medium text-gray-700 mb-1">מחיר מוצע (אופציונלי):</label>
+                        <label htmlFor="requestPrice" className="block text-sm font-medium text-gray-700 mb-1">מחיר מוצע:</label>
                         <input
                           type="number"
                           id="requestPrice"
                           value={requestPrice}
                           onChange={(e) => setRequestPrice(parseFloat(e.target.value) || '')}
                           className="mt-1 block w-full px-4 py-2 border-2 border-blue-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
-                          placeholder="הכנס מחיר מוצע (אופציונלי)"
+                          placeholder="הכנס מחיר מוצע"
                           step="0.01" // Allow decimal values
+                          required // Price is mandatory
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="requestCity" className="block text-sm font-medium text-gray-700 mb-1">עיר:</label>
+                        <input
+                          type="text"
+                          id="requestCity"
+                          value={requestCity}
+                          onChange={(e) => setRequestCity(e.target.value)}
+                          className="mt-1 block w-full px-4 py-2 border-2 border-blue-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
+                          placeholder="הכנס עיר..."
+                          required // City is mandatory
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="requestNeighborhood" className="block text-sm font-medium text-gray-700 mb-1">שכונה (אופציונלי):</label>
+                        <input
+                          type="text"
+                          id="requestNeighborhood"
+                          value={requestNeighborhood}
+                          onChange={(e) => setRequestNeighborhood(e.target.value)}
+                          className="mt-1 block w-full px-4 py-2 border-2 border-blue-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
+                          placeholder="הכנס שכונה..."
                         />
                       </div>
 

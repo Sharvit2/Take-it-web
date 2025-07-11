@@ -9,13 +9,13 @@ interface ServiceCall {
   created_at: string;
   category: string;
   image_url: string | null;
-  price: number | null;
-  city: string | null;
+  price: number; // Price is now mandatory
+  location: string | null; // Changed from city to location
   seeker_id: string; // To avoid fetching current user's own requests
 }
 
 interface OpenCallsForProvidersProps {
-  providerCity: string | null;
+  providerCity: string | null; // This will now represent the full location string if applicable
   currentUserId: string | undefined;
 }
 
@@ -31,11 +31,12 @@ const OpenCallsForProviders: React.FC<OpenCallsForProvidersProps> = ({ providerC
 
       let query = supabase
         .from('requests')
-        .select('id, title, status, description, created_at, category, image_url, price, city, seeker_id')
+        .select('id, title, status, description, created_at, category, image_url, price, location, seeker_id') // Select new columns including location
         .eq('status', 'open');
       
       if (providerCity) {
-        query = query.eq('city', providerCity);
+        // Filter by location field for providers, matching the city part
+        query = query.ilike('location', `%${providerCity}%`); // Use ilike for partial match
       }
 
       const { data, error: fetchError } = await query;
@@ -71,11 +72,11 @@ const OpenCallsForProviders: React.FC<OpenCallsForProvidersProps> = ({ providerC
         <div key={call.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <h3 className="text-xl font-semibold mb-2">{call.title}</h3>
           <p className="text-gray-600 dark:text-gray-400 mb-1">סטטוס: {call.status}</p>
-          {call.price !== null && <p className="text-gray-600 dark:text-gray-400 mb-1">מחיר: ₪{call.price}</p>}
+          <p className="text-gray-600 dark:text-gray-400 mb-1">מחיר: ₪{call.price}</p>
           <p className="text-gray-700 dark:text-gray-300 text-sm mb-4">{call.description}</p>
           <p className="text-gray-500 dark:text-gray-500 text-xs mb-4">נפתח: {new Date(call.created_at).toLocaleString()}</p>
           <p className="text-gray-500 dark:text-gray-500 text-xs mb-4">קטגוריה: {call.category}</p>
-          {call.city && <p className="text-gray-500 dark:text-gray-500 text-xs mb-4">עיר: {call.city}</p>}
+          {call.location && <p className="text-gray-500 dark:text-gray-500 text-xs mb-4">אזור: {call.location}</p>}
 
           <div className="flex justify-end space-x-2">
             {/* No edit/delete for providers, but could have 'Take Job' or 'Contact Seeker' */}
